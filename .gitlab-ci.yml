@@ -1,0 +1,36 @@
+stages:
+  - tests
+  - deploy
+  
+
+
+interface_test:
+  stage: tests
+  tags:
+    - build
+  script:
+    - export
+    - ant -Djmeter.home=/usr/local/buildtools/apache-jmeter-5.2.1
+  artifacts:
+    paths:
+      - result/htmlfile/
+  
+pages:
+  stage: deploy
+  dependencies:
+    - interface_test
+  script:
+    - mv result/htmlfile/ public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - master
+    
+dingding:
+  stage: .post
+  script:
+    - " curl 'https://oapi.dingtalk.com/robot/send?access_token=46ea6f8a0ae44f65fadb1d56d4df5f768801d200af58146580ea7619b108b179' \
+        -H 'Content-Type: application/json' \
+        -d '{\"msgtype\": \"text\",\"text\": {\"content\": \"CICD我就是我, 是不一样的烟火 @15811596572\"},\"at\": {\"atMobiles\": [\"15811596572\"], \"isAtAll\": false}}'"
